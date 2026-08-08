@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة سعر البيتكوين</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#14110F">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="بيتكوين">
+<meta name="mobile-web-app-capable" content="yes">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #14110F;
+    --panel: #1E1A16;
+    --panel-2: #241F1A;
+    --hairline: #332C24;
+    --amber: #FFB020;
+    --amber-dim: #8A6420;
+    --up: #3DDC84;
+    --down: #FF5252;
+    --text: #EDE7DC;
+    --muted: #8A8478;
+  }
+  *{ box-sizing: border-box; }
+  html,body{
+    margin:0; padding:0; min-height:100%;
+    background:
+      radial-gradient(1200px 600px at 50% -10%, rgba(255,176,32,0.05), transparent 60%),
+      var(--bg);
+    color: var(--text);
+    font-family: 'Cairo', sans-serif;
+  }
+  .mono{ font-family: 'JetBrains Mono', monospace; }
+
+  .wrap{
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 28px 18px 60px;
+  }
+
+  /* header */
+  header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding-bottom: 18px; border-bottom: 1px solid var(--hairline);
+    margin-bottom: 22px;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .brand .coin{
+    width: 34px; height:34px; border-radius:50%;
+    background: linear-gradient(160deg, #FFC94A, #C77A1B);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono',monospace; font-weight:800; color:#1a1206; font-size:16px;
+    box-shadow: inset 0 -3px 6px rgba(0,0,0,0.35), 0 2px 8px rgba(255,176,32,0.15);
+  }
+  .brand-text .title{ font-weight:700; font-size:15px; letter-spacing:0.3px; }
+  .brand-text .sub{ font-size:11px; color: var(--muted); font-family:'JetBrains Mono',monospace; }
+  .live{
+    display:flex; align-items:center; gap:6px;
+    font-size:11px; color: var(--muted); font-family:'JetBrains Mono',monospace;
+  }
+  .dot{
+    width:7px; height:7px; border-radius:50%; background: var(--up);
+    box-shadow: 0 0 8px var(--up);
+    animation: pulse 2s infinite ease-in-out;
+  }
+  .dot.off{ background:#6b6558; box-shadow:none; animation:none; }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.35;} }
+
+  /* current price line */
+  .price-row{ text-align:center; margin-bottom: 26px; }
+  .price-label{ font-size:12px; color: var(--muted); margin-bottom:6px; }
+  .price-value{
+    font-size: 30px; font-weight:700; letter-spacing: 0.5px;
+    font-family:'JetBrains Mono',monospace;
+  }
+  .price-value sup{ font-size:16px; color:var(--muted); font-weight:500; margin-inline-end:4px; }
+
+  /* tabs */
+  .tabs{
+    display:flex; background: var(--panel);
+    border:1px solid var(--hairline); border-radius: 12px; padding: 4px;
+    gap: 4px; margin-bottom: 22px;
+  }
+  .tab{
+    flex:1; text-align:center; padding: 10px 6px;
+    border-radius: 9px; cursor:pointer; user-select:none;
+    font-size: 13px; font-weight:600; color: var(--muted);
+    transition: background 0.25s, color 0.25s;
+  }
+  .tab.active{
+    background: linear-gradient(180deg, #2C2419, #231D14);
+    color: var(--amber);
+    box-shadow: inset 0 0 0 1px rgba(255,176,32,0.25);
+  }
+
+  /* board */
+  .board{
+    position:relative;
+    background:
+      linear-gradient(180deg, var(--panel-2), var(--panel));
+    border:1px solid var(--hairline);
+    border-radius: 18px;
+    padding: 34px 20px 28px;
+    text-align:center;
+    overflow:hidden;
+    box-shadow: 0 20px 50px -25px rgba(0,0,0,0.7);
+  }
+  .board::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image: repeating-linear-gradient(180deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 3px);
+    pointer-events:none;
+  }
+  .board-period{
+    font-size: 12px; color: var(--amber-dim); letter-spacing: 2px;
+    text-transform:uppercase; font-family:'JetBrains Mono',monospace;
+    margin-bottom: 14px;
+  }
+  .board-figure{
+    display:flex; align-items:center; justify-content:center; gap: 10px;
+    font-family:'JetBrains Mono',monospace;
+    font-weight:800;
+    font-size: 64px;
+    line-height:1;
+    transition: opacity 0.35s ease;
+  }
+  .board-figure .arrow{ font-size: 40px; transform: translateY(-4px); }
+  .board-figure.up{ color: var(--up); text-shadow: 0 0 26px rgba(61,220,132,0.35); }
+  .board-figure.down{ color: var(--down); text-shadow: 0 0 26px rgba(255,82,82,0.35); }
+  .board-figure.flat{ color: var(--muted); text-shadow:none; }
+  .board-figure.loading{ opacity:0.25; }
+
+  .board-caption{
+    margin-top: 14px; font-size: 13px; color: var(--muted);
+  }
+
+  /* range row */
+  .range-row{
+    display:flex; justify-content:space-between;
+    margin-top: 22px; padding-top: 18px; border-top: 1px dashed var(--hairline);
+    font-family:'JetBrains Mono',monospace; font-size: 12px;
+  }
+  .range-item{ text-align:center; flex:1; }
+  .range-item .k{ color: var(--muted); font-size:10.5px; margin-bottom:4px; letter-spacing:1px;}
+  .range-item .v{ color: var(--text); font-size:14px; font-weight:600; }
+  .range-item .v.up{ color: var(--up); }
+  .range-item .v.down{ color: var(--down); }
+
+  /* footer */
+  footer{
+    margin-top: 24px; display:flex; align-items:center; justify-content:space-between;
+    font-size: 11px; color: var(--muted);
+  }
+  .refresh-btn{
+    background: var(--panel); border: 1px solid var(--hairline);
+    color: var(--amber); font-family:'Cairo',sans-serif; font-weight:600;
+    font-size: 12px; padding: 8px 16px; border-radius: 10px; cursor:pointer;
+    transition: background 0.2s, transform 0.2s;
+  }
+  .refresh-btn:active{ transform: scale(0.96); }
+  .refresh-btn:hover{ background: var(--panel-2); }
+  .refresh-btn:disabled{ opacity:0.5; cursor:default; }
+
+  .error-msg{
+    display:none; margin-bottom:18px; padding:12px 14px; border-radius:10px;
+    background: rgba(255,82,82,0.08); border:1px solid rgba(255,82,82,0.3);
+    color: var(--down); font-size: 13px; text-align:center;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .dot, .board-figure{ animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+
+    <header>
+      <div class="brand">
+        <div class="coin">₿</div>
+        <div class="brand-text">
+          <div class="title">لوحة سعر البيتكوين</div>
+          <div class="sub" id="updatedAt">جارِ التحميل...</div>
+        </div>
+      </div>
+      <div class="live"><span class="dot" id="liveDot"></span><span id="liveLabel">مباشر</span></div>
+    </header>
+
+    <div class="error-msg" id="errorMsg">تعذّر جلب البيانات. تحقّق من الاتصال بالإنترنت ثم أعد المحاولة.</div>
+
+    <div class="price-row">
+      <div class="price-label">السعر الحالي (USD)</div>
+      <div class="price-value" id="currentPrice"><sup>$</sup>—</div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" data-period="24h">يومي</div>
+      <div class="tab" data-period="7d">أسبوعي</div>
+      <div class="tab" data-period="30d">شهري</div>
+    </div>
+
+    <div class="board">
+      <div class="board-period" id="boardPeriod">التغيير خلال ٢٤ ساعة</div>
+      <div class="board-figure loading flat" id="boardFigure">
+        <span class="arrow" id="boardArrow"></span>
+        <span id="boardValue">--.--%</span>
+      </div>
+      <div class="board-caption" id="boardCaption">جارِ جلب البيانات من السوق...</div>
+
+      <div class="range-row">
+        <div class="range-item">
+          <div class="k">يومي</div>
+          <div class="v" id="mini24h">—</div>
+        </div>
+        <div class="range-item">
+          <div class="k">أسبوعي</div>
+          <div class="v" id="mini7d">—</div>
+        </div>
+        <div class="range-item">
+          <div class="k">شهري</div>
+          <div class="v" id="mini30d">—</div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <span id="sourceLabel">المصدر: CoinGecko · تحديث تلقائي كل دقيقة</span>
+      <button class="refresh-btn" id="refreshBtn">تحديث الآن</button>
+    </footer>
+
+  </div>
+
+<script>
+  const state = { data: null, activePeriod: '24h' };
+  const periodLabels = {
+    '24h': { board: 'التغيير خلال ٢٤ ساعة', tab: 'يومي' },
+    '7d':  { board: 'التغيير خلال ٧ أيام',  tab: 'أسبوعي' },
+    '30d': { board: 'التغيير خلال ٣٠ يومًا', tab: 'شهري' },
+  };
+
+  const fmtPercent = (v) => {
+    if (v === null || v === undefined || isNaN(v)) return '--.--%';
+    const sign = v > 0 ? '+' : '';
+    return `${sign}${v.toFixed(2)}%`;
+  };
+
+  const fmtPrice = (v) => {
+    if (v === null || v === undefined || isNaN(v)) return '—';
+    return v.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  };
+
+  function setBoard(period){
+    state.activePeriod = period;
+    document.querySelectorAll('.tab').forEach(t => {
+      t.classList.toggle('active', t.dataset.period === period);
+    });
+    document.getElementById('boardPeriod').textContent = periodLabels[period].board;
+
+    if (!state.data) return;
+
+    const key = { '24h': 'price_change_percentage_24h_in_currency',
+                  '7d':  'price_change_percentage_7d_in_currency',
+                  '30d': 'price_change_percentage_30d_in_currency' }[period];
+    const val = state.data[key];
+
+    const figure = document.getElementById('boardFigure');
+    const arrow = document.getElementById('boardArrow');
+    const valueEl = document.getElementById('boardValue');
+    const caption = document.getElementById('boardCaption');
+
+    figure.classList.remove('up','down','flat','loading');
+    if (val > 0){ figure.classList.add('up'); arrow.textContent = '▲'; }
+    else if (val < 0){ figure.classList.add('down'); arrow.textContent = '▼'; }
+    else { figure.classList.add('flat'); arrow.textContent = '—'; }
+
+    valueEl.textContent = fmtPercent(val);
+
+    const periodWord = period === '24h' ? 'اليوم' : period === '7d' ? 'الأسبوع' : 'الشهر';
+    if (val > 0) caption.textContent = `البيتكوين مرتفع منذ بداية ${periodWord} الماضي`;
+    else if (val < 0) caption.textContent = `البيتكوين منخفض منذ بداية ${periodWord} الماضي`;
+    else caption.textContent = `لا تغيير يُذكر خلال هذه الفترة`;
+  }
+
+  function paintMinis(){
+    if (!state.data) return;
+    const map = [
+      ['mini24h', state.data.price_change_percentage_24h_in_currency],
+      ['mini7d',  state.data.price_change_percentage_7d_in_currency],
+      ['mini30d', state.data.price_change_percentage_30d_in_currency],
+    ];
+    map.forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      el.textContent = fmtPercent(val);
+      el.classList.remove('up','down');
+      if (val > 0) el.classList.add('up');
+      else if (val < 0) el.classList.add('down');
+    });
+  }
+
+  async function fetchData(){
+    const btn = document.getElementById('refreshBtn');
+    const dot = document.getElementById('liveDot');
+    const errorMsg = document.getElementById('errorMsg');
+    btn.disabled = true; btn.textContent = 'جارِ التحديث...';
+    document.getElementById('boardFigure').classList.add('loading');
+
+    try{
+      const res = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin&price_change_percentage=24h,7d,30d');
+      if (!res.ok) throw new Error('bad response');
+      const json = await res.json();
+      const coin = json[0];
+      state.data = coin;
+
+      document.getElementById('currentPrice').innerHTML = `<sup>$</sup>${fmtPrice(coin.current_price)}`;
+      const now = new Date();
+      document.getElementById('updatedAt').textContent = 'آخر تحديث: ' + now.toLocaleTimeString('ar-EG', { hour:'2-digit', minute:'2-digit' });
+
+      setBoard(state.activePeriod);
+      paintMinis();
+      errorMsg.style.display = 'none';
+      dot.classList.remove('off');
+    } catch(err){
+      errorMsg.style.display = 'block';
+      document.getElementById('liveDot').classList.add('off');
+    } finally {
+      btn.disabled = false; btn.textContent = 'تحديث الآن';
+      document.getElementById('boardFigure').classList.remove('loading');
+    }
+  }
+
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => setBoard(tab.dataset.period));
+  });
+  document.getElementById('refreshBtn').addEventListener('click', fetchData);
+
+  fetchData();
+  setInterval(fetchData, 60000);
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>
